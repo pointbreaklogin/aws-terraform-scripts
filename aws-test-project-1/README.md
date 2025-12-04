@@ -1,7 +1,17 @@
 
 # **Three-Tier AWS Architecture – Terraform Project**
 
-## **📝 Overview**
+## **📌 Architecture Diagram**
+
+```md
+![Architecture Diagram](three-tier-architecture-1.png)
+```
+
+![Architecture Diagram](three-tier-architecture-1.png)
+
+---
+
+# **📝 Overview**
 
 This project deploys a **highly available, secure, and scalable 3-Tier Architecture on AWS** using Terraform.
 The architecture includes:
@@ -17,13 +27,6 @@ This README explains the components, flow, and Terraform structure.
 
 ---
 
-# **📌 Architecture Diagram**
-
-*(Add your architecture image here)*
-`![Architecture](three-tier-architecture-1.png)`
-
----
-
 # **🏗 Architecture Components**
 
 ## **1️⃣ VPC Layer**
@@ -31,7 +34,7 @@ This README explains the components, flow, and Terraform structure.
 The VPC contains the full application stack and follows AWS best practices:
 
 * **VPC**
-* **Public Subnets (AZ-A, AZ-B)** → Nginx servers
+* **Public Subnets (AZ-A, AZ-B)** → NGINX servers
 * **Private Subnets (AZ-A, AZ-B)** → Node.js/PM2 + RDS
 * **Internet Gateway**
 * **NAT Gateway** (for private subnet outbound access)
@@ -105,8 +108,6 @@ The VPC contains the full application stack and follows AWS best practices:
 
 # **🧱 Terraform Structure**
 
-Recommended folder layout:
-
 ```
 terraform-project/
 │
@@ -135,31 +136,31 @@ terraform-project/
 
 # **🚀 Deployment Steps**
 
-## **1. Initialize Terraform**
+### **1. Initialize Terraform**
 
 ```
 terraform init
 ```
 
-## **2. Validate the configuration**
+### **2. Validate the configuration**
 
 ```
 terraform validate
 ```
 
-## **3. Preview changes**
+### **3. Preview changes**
 
 ```
 terraform plan
 ```
 
-## **4. Deploy**
+### **4. Deploy**
 
 ```
 terraform apply
 ```
 
-## **5. Destroy environment**
+### **5. Destroy environment**
 
 ```
 terraform destroy
@@ -187,8 +188,4 @@ terraform destroy
 * Scalable ALB front-end
 
 ---
-
-# **📄 License**
-
-This project is licensed under your organization or personal terms.
 
