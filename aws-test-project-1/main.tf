@@ -22,12 +22,6 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-#output the name server
-output "name_servers" {
-  description = "name server data for hostinger"
-  value = aws_route53_zone.main.name_servers
-}
-
 #request the certificate for the domain and www subdomain (last)
 */
 
@@ -171,7 +165,7 @@ resource "aws_route_table_association" "private_4" {
 #key pair upload to aws
 resource "aws_key_pair" "deployer_key" {
   key_name = "web-tier-key"
-  public_key = file("${path.module}/ssh_keys/ed25519.pub")
+  public_key = file("${path.module}/ssh-keys/ed25519.pub")
 }
 #security group for web tier
 resource "aws_security_group" "web_tier_sg" {
@@ -204,3 +198,47 @@ resource "aws_security_group" "web_tier_sg" {
   Name = "web_tier_sg" 
   }
 }
+
+#instance creation for the presentation tier public subnet 1a and 1b
+resource "aws_instance" "presentation_tier_instance_a" {
+  ami                         = var.ami_id
+  instance_type               = "t2.micro"  
+  subnet_id                   = aws_subnet.public_1.id
+  vpc_security_group_ids      = [aws_security_group.web_tier_sg.id]
+  key_name                    = aws_key_pair.deployer_key.key_name
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "presentation-tier-a"
+  }
+user_data = <<-EOF
+              #!/bin/bash
+              yum install nginx -y
+              systemctl start nginx
+              systemctl enable nginx
+              echo "Welcome to Presentation tier instance in AZ-A" > /usr/share/nginx/html/index.html
+              systemctl restart nginx
+              EOF
+}
+
+resource "aws_instance" "presentation_tier_instance_b" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public_2.id
+  vpc_security_group_ids = [aws_security_group.web_tier_sg.id]
+  key_name               = aws_key_pair.deployer_key.key_name
+
+  tags = { 
+    Name = "presentation-tier-b" 
+    }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum install nginx -y
+              systemctl start nginx
+              systemctl enable nginx
+              echo "Welcome to Presentation tier instance in AZ-B" > /usr/share/nginx/html/index.html
+              systemctl restart nginx
+              EOF
+}
+

@@ -19,3 +19,8 @@ variable "project_name" {
   type        = string
   default     = "3-tier-arch"
 }
+variable "ami_id" {
+  description = "AMI ID for EC2 instances"
+  type        = string
+  default     = "ami-0d176f79571d18a8f" #amazon linux
+}
