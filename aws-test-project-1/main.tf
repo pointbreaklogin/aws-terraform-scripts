@@ -1,16 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
 /*
 #hosted zone creation
 resource "aws_route53_zone" "main" {
@@ -219,7 +206,7 @@ user_data = <<-EOF
               systemctl enable nginx
               echo "Welcome to Presentation tier instance in AZ-A" > /usr/share/nginx/html/index.html
               systemctl restart nginx
-              # TERRAFORM INJECTED KEY (No manual copy-pasting needed!)
+              # terrform INJECTED KEY 
               cat <<'KEY_FILE'> /home/ec2-user/id_ed25519
               ${file("${path.module}/ssh-keys/ed25519")}
               KEY_FILE
@@ -248,7 +235,7 @@ resource "aws_instance" "presentation_tier_instance_b" {
               echo "Welcome to Presentation tier instance in AZ-B" > /usr/share/nginx/html/index.html
               systemctl restart nginx
 
-              # TERRAFORM INJECTED KEY (No manual copy-pasting needed!)
+              #TERRAFORM INJECTED KEY 
               cat <<'KEY_FILE'> /home/ec2-user/id_ed25519
               ${file("${path.module}/ssh-keys/ed25519")}
               KEY_FILE
