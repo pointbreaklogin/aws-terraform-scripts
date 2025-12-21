@@ -44,5 +44,5 @@ variable db_username {
 variable db_password {
   description = "Password for the RDS database"
   type        = string
-  default     = "test_user_1234##"
+  default     = "testuser_123#"
 } 

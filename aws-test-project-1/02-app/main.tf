@@ -283,12 +283,6 @@ resource "aws_security_group" "app_tier_sg" {
     Name = "app_tier_sg"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
-              sudo dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
-              sudo dnf install mysql-community-server -y
-              EOF
 }
 
 #instance creation for the application tier private subnet 1a and 1b
@@ -322,6 +316,12 @@ resource "aws_instance" "application_tier_instance_b" {
   tags = {
     Name = "application-tier-b"
   }
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+              sudo dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
+              sudo dnf install mysql-community-server -y
+              EOF
 }
 
 #ALB security group
