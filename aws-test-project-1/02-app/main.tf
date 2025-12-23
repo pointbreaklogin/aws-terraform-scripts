@@ -205,23 +205,20 @@ resource "aws_instance" "presentation_tier_instance_a" {
   key_name                    = aws_key_pair.deployer_key.key_name
   associate_public_ip_address = true
 
+  #Wait for App Tier to be ready so we have its IP
+  depends_on = [aws_instance.application_tier_instance_a]
+
   tags = {
     Name = "presentation-tier-a"
   }
-  user_data = <<-EOF
-              #!/bin/bash
-              yum install nginx -y
-              systemctl start nginx
-              systemctl enable nginx
-              echo "Welcome to Presentation tier instance in AZ-A" > /usr/share/nginx/html/index.html
-              systemctl restart nginx
-              # TERRAFORM INJECTED KEY (No manual copy-pasting needed!)
-              cat <<'KEY_FILE'> /home/ec2-user/id_ed25519
-              ${file("${path.module}/ssh-keys/ed25519")}
-              KEY_FILE
-              chown ec2-user:ec2-user /home/ec2-user/id_ed25519
-              chmod 400 /home/ec2-user/id_ed25519
-              EOF
+  user_data = templatefile("${path.module}/web-install.sh", {
+    # Pass the App Tier private IP to the web tier for Nginx reverse proxy
+    app_tier_ip     = aws_instance.application_tier_instance_a.private_ip
+    
+    # Pass the SSH key content for your jump host capability
+    ssh_private_key = file("${path.module}/ssh-keys/ed25519")
+  })
+  user_data_replace_on_change = true
 }
 
 resource "aws_instance" "presentation_tier_instance_b" {
@@ -232,25 +229,20 @@ resource "aws_instance" "presentation_tier_instance_b" {
   key_name                    = aws_key_pair.deployer_key.key_name
   associate_public_ip_address = true
 
+    #Wait for App Tier to be ready so we have its IP
+  depends_on = [aws_instance.application_tier_instance_b]
+
   tags = {
     Name = "presentation-tier-b"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              yum install nginx -y
-              systemctl start nginx
-              systemctl enable nginx
-              echo "Welcome to Presentation tier instance in AZ-B" > /usr/share/nginx/html/index.html
-              systemctl restart nginx
-
-              # TERRAFORM INJECTED KEY (No manual copy-pasting needed!)
-              cat <<'KEY_FILE'> /home/ec2-user/id_ed25519
-              ${file("${path.module}/ssh-keys/ed25519")}
-              KEY_FILE
-              chown ec2-user:ec2-user /home/ec2-user/id_ed25519
-              chmod 400 /home/ec2-user/id_ed25519
-              EOF
+  user_data = templatefile("${path.module}/web-install.sh", {
+    # Pass the App Tier private IP to the web tier for Nginx reverse proxy
+    app_tier_ip     = aws_instance.application_tier_instance_b.private_ip
+    
+    ssh_private_key = file("${path.module}/ssh-keys/ed25519")
+  })
+  user_data_replace_on_change = true
 }
 
 resource "aws_security_group" "app_tier_sg" {
@@ -297,12 +289,15 @@ resource "aws_instance" "application_tier_instance_a" {
   tags = {
     Name = "application-tier-a"
   }
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
-              sudo dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
-              sudo dnf install mysql-community-server -y
-              EOF
+  user_data = templatefile("${path.module}/app-install.sh", {
+    rds_endpoint = aws_db_instance.rds_db.address
+    db_name  = "react_node_app"
+    db_username        = "appuser"
+    db_password        = "appuser123#"
+    db_master_user     = var.db_username
+    db_master_password = var.db_password
+    run_db_init        = "true"
+  })
 }
 
 resource "aws_instance" "application_tier_instance_b" {
@@ -316,12 +311,15 @@ resource "aws_instance" "application_tier_instance_b" {
   tags = {
     Name = "application-tier-b"
   }
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
-              sudo dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
-              sudo dnf install mysql-community-server -y
-              EOF
+  user_data = templatefile("${path.module}/app-install.sh", {
+    rds_endpoint       = aws_db_instance.rds_db.address
+    db_name            = "react_node_app"
+    db_username        = "appuser"
+    db_password        = "appuser123#"
+    db_master_user     = var.db_username
+    db_master_password = var.db_password
+    run_db_init        = "false"
+  })
 }
 
 #ALB security group
@@ -541,7 +539,7 @@ resource "aws_db_instance" "rds_db" {
 
   username              = var.db_username
   password              = var.db_password
-  db_name               = "test1db"
+  db_name               = "react_node_app"
 
   #network config
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name

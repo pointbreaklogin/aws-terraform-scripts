@@ -121,4 +121,29 @@ su - ec2-user -c '
     # Start the application
     pm2 start server.js --name "api-server"
     pm2 save
+    pm2 startup systemd -u ec2-user --hp /home/ec2-user
 '
+
+# ====================================================
+# 6. CREATE TROUBLESHOOTING HELPER SCRIPT
+# We create a handy script for future debugging
+cat <<EOF > /home/ec2-user/fix_app.sh
+#!/bin/bash
+# Troubleshooting script for App Tier
+echo "Stopping all PM2 processes..."
+pm2 delete all
+
+echo "Starting server.js..."
+cd ~/lirw-react-node-mysql-app/backend
+pm2 start server.js --name "api-server"
+
+echo "Saving PM2 list..."
+pm2 save
+
+echo "Verifying connection..."
+curl http://localhost:3200/api/books
+EOF
+
+# Make it executable and owned by ec2-user
+chmod +x /home/ec2-user/fix_app.sh
+chown ec2-user:ec2-user /home/ec2-user/fix_app.sh
