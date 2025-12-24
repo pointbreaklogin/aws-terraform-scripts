@@ -23,63 +23,15 @@ The architecture includes:
 * Layer-7 load balancing using **Application Load Balancer (ALB)**
 * HTTPS termination with SSL
 
-This README explains the components, flow, and Terraform structure.
+--- 
 
----
+# **⚙ Technologies Used**
 
-# **🏗 Architecture Components**
-
-## **1️⃣ VPC Layer**
-
-The VPC contains the full application stack and follows AWS best practices:
-
-* **VPC**
-* **Public Subnets (AZ-A, AZ-B)** → NGINX servers
-* **Private Subnets (AZ-A, AZ-B)** → Node.js/PM2 + RDS
-* **Internet Gateway**
-* **NAT Gateway** (for private subnet outbound access)
-
----
-
-## **2️⃣ Presentation Tier (NGINX – Public Subnet)**
-
-* Hosted on EC2 inside **public subnets**
-* NGINX serves:
-
-  * React UI files
-  * Acts as a reverse proxy to Node.js backend
-* Traffic routed via **ALB → NGINX**
-
----
-
-## **3️⃣ Application Tier (Node.js + PM2 – Private Subnet)**
-
-* Node.js backend runs on EC2 inside **private subnets**
-* **PM2** ensures:
-
-  * Process monitoring
-  * Auto-restart on crash
-* Only accessible from **NGINX security group**
-* No direct internet access
-
----
-
-## **4️⃣ Data Tier (Amazon RDS – MySQL)**
-
-* RDS deployed in **private DB subnets**
-* Multi-AZ setup for high availability
-* Accessible only from Application Tier SG
-* Not accessible from the internet
-
----
-
-## **5️⃣ Load Balancing + SSL**
-
-* **Application Load Balancer (ALB)** distributes traffic to NGINX EC2s
-* HTTPS enabled with:
-
-  * **ACM SSL Certificate**
-  * **Route53 domain mapping (optional)**
+* **Terraform**
+* **AWS VPC, EC2, ALB, RDS, Route53, ACM**
+* **NGINX**
+* **Node.js + PM2**
+* **MySQL**
 
 ---
 
@@ -106,77 +58,6 @@ The VPC contains the full application stack and follows AWS best practices:
 
 ---
 
-# **🧱 Terraform Structure**
-
-```
-terraform-project/
-│
-├── modules/
-│   ├── vpc/
-│   ├── alb/
-│   ├── ec2-nginx/
-│   ├── ec2-node/
-│   ├── rds/
-│   └── security-groups/
-│
-├── envs/
-│   ├── dev/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   └── prod/
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
-│
-└── README.md
-```
-
----
-
-# **🚀 Deployment Steps**
-
-### **1. Initialize Terraform**
-
-```
-terraform init
-```
-
-### **2. Validate the configuration**
-
-```
-terraform validate
-```
-
-### **3. Preview changes**
-
-```
-terraform plan
-```
-
-### **4. Deploy**
-
-```
-terraform apply
-```
-
-### **5. Destroy environment**
-
-```
-terraform destroy
-```
-
----
-
-# **⚙ Technologies Used**
-
-* **Terraform**
-* **AWS VPC, EC2, ALB, RDS, Route53, ACM**
-* **NGINX**
-* **Node.js + PM2**
-* **MySQL**
-
----
 
 # **📦 Features**
 
