@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 1. INSTALL SYSTEM DEPENDENCIES
+# INSTALL SYSTEM DEPENDENCIES
 dnf update -y
 dnf install git nginx -y
 
@@ -12,14 +12,14 @@ systemctl start nginx
 su - ec2-user -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 su - ec2-user -c '. ~/.nvm/nvm.sh && nvm install --lts'
 
-# 3. CLONE & CONFIGURE FRONTEND
+# CLONE & CONFIGURE FRONTEND
 su - ec2-user -c 'git clone https://github.com/Learn-It-Right-Way/lirw-react-node-mysql-app.git ~/lirw-react-node-mysql-app'
 
 # Create the .env file for the build
 # We set the API URL to "/api" so the browser sends requests to Nginx (which proxies them)
 su - ec2-user -c 'echo "VITE_API_URL=/api" > ~/lirw-react-node-mysql-app/frontend/.env'
 
-# 4. BUILD REACT APP
+# BUILD REACT APP
 su - ec2-user -c '
     . ~/.nvm/nvm.sh
     cd ~/lirw-react-node-mysql-app/frontend
@@ -27,7 +27,7 @@ su - ec2-user -c '
     npm run build
 '
 
-# 5. DEPLOY TO NGINX
+#DEPLOY TO NGINX
 # Create the directory structure
 mkdir -p /usr/share/nginx/html/dist
 
@@ -38,7 +38,7 @@ cp -r /home/ec2-user/lirw-react-node-mysql-app/frontend/dist/* /usr/share/nginx/
 chown -R nginx:nginx /usr/share/nginx/html/dist
 chmod -R 755 /usr/share/nginx/html/dist
 
-# 6. CONFIGURE NGINX (Reverse Proxy)
+#CONFIGURE NGINX (Reverse Proxy)
 # We overwrite the default server block.
 # Terraform replaces ${app_tier_ip} with the private IP of the specific App Tier instance.
 
@@ -96,13 +96,13 @@ http {
 }
 EOF
 
-# 7. ADD SSH KEY (From your previous setup)
-cat <<'KEY_FILE'> /home/ec2-user/id_ed25519
+#ADD SSH KEY (From your previous setup)
+cat <<'KEY_FILE'> /home/ec2-user/private_key.pem
 ${ssh_private_key}
 KEY_FILE
-chown ec2-user:ec2-user /home/ec2-user/id_ed25519
-chmod 400 /home/ec2-user/id_ed25519
+chown ec2-user:ec2-user /home/ec2-user/private_key.pem
+chmod 400 /home/ec2-user/private_key.pem
 
-# 8. RESTART NGINX
+# Test Nginx configuration and restart to apply changes
 nginx -t
 systemctl restart nginx
